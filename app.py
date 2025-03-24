@@ -42,12 +42,11 @@ if file:
         # Sélectionner une colonne spécifique à visualiser
         selected_col = st.selectbox("Sélectionnez une colonne à visualiser:", options=df.columns)
 
-        if selected_col and not df.empty:
-            # Détecter le type de la colonne
+                if selected_col and not df.empty:
             is_numeric = df[selected_col].dtype != 'object' and df[selected_col].dtype.name != 'category'
+            unique_count = df[selected_col].nunique()
 
-            if is_numeric:
-                # Options de graphiques pour variables numériques
+            if is_numeric and unique_count > 10:  # Heuristic: more than 10 unique values, treat as continuous
                 graph_type = st.selectbox(
                     "Type de graphique pour variable numérique:",
                     options=["Histogramme", "Box Plot", "KDE (Density)", "Violin Plot", "Cumulative Distribution"],
@@ -78,15 +77,13 @@ if file:
                     fig = px.ecdf(df, x=selected_col, title=f"Distribution cumulative de {selected_col}")
                     st.plotly_chart(fig)
 
-            else:
-                # Options de graphiques pour variables catégorielles
+            else:  # Treat as categorical
                 graph_type = st.selectbox(
                     "Type de graphique pour variable catégorielle:",
                     options=["Bar Chart", "Pie Chart", "Treemap", "Funnel Chart"],
                     key="cat_graph_type"
                 )
 
-                # Limiter les valeurs pour les graphiques circulaires et treemap
                 value_counts = df[selected_col].value_counts()
 
                 if graph_type == "Bar Chart":
@@ -100,7 +97,6 @@ if file:
                     st.plotly_chart(fig)
 
                 elif graph_type == "Pie Chart":
-                    # Limiter à 10 catégories max pour la lisibilité des graphiques circulaires
                     if len(value_counts) > 10:
                         st.warning(
                             f"La colonne a {len(value_counts)} valeurs uniques. Affichage limité aux 10 plus fréquentes.")
@@ -111,7 +107,6 @@ if file:
                     st.plotly_chart(fig)
 
                 elif graph_type == "Treemap":
-                    # Limiter à 20 catégories max pour la lisibilité
                     if len(value_counts) > 20:
                         st.warning(
                             f"La colonne a {len(value_counts)} valeurs uniques. Affichage limité aux 20 plus fréquentes.")
@@ -125,7 +120,6 @@ if file:
                     st.plotly_chart(fig)
 
                 elif graph_type == "Funnel Chart":
-                    # Limiter à 10 catégories max pour la lisibilité
                     if len(value_counts) > 10:
                         st.warning(
                             f"La colonne a {len(value_counts)} valeurs uniques. Affichage limité aux 10 plus fréquentes.")
@@ -138,7 +132,6 @@ if file:
                     )
                     st.plotly_chart(fig)
 
-            # Afficher des statistiques descriptives pour la colonne sélectionnée
             with st.expander("Statistiques descriptives"):
                 if is_numeric:
                     st.write(df[selected_col].describe())
@@ -148,6 +141,7 @@ if file:
                     st.write(df[selected_col].value_counts())
                     st.write("Distribution en pourcentage:")
                     st.write(df[selected_col].value_counts(normalize=True).mul(100).round(2).astype(str) + ' %')
+
         # les graphs de deux dim :
         st.title("les graphs de deux dim :")
         ch = st.columns(3)  # Ajout d'une colonne pour le choix du type de graphique
