@@ -156,8 +156,8 @@ if file:
 
         # Vérifier les types de données pour proposer des graphiques appropriés
         if x_col and y_col and not df.empty:
-            x_is_object = df[x_col].dtype == 'object' or df[x_col].dtype.name == 'category'
-            y_is_object = df[y_col].dtype == 'object' or df[y_col].dtype.name == 'category'
+            x_is_object = df[x_col].dtype == 'object' or df[x_col].dtype.name == 'category' or df[x_col].nunique() <= 10
+            y_is_object = df[y_col].dtype == 'object' or df[y_col].dtype.name == 'category' or df[y_col].nunique() <= 10
 
             # Proposer différents types de graphiques selon les types de données
             if x_is_object and y_is_object:
