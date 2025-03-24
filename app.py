@@ -167,3 +167,90 @@ if file:
                     options=['Bar Chart', 'Count Plot', 'Heatmap'],
                     key='cat_cat'
                 )
+
+                if graph_type == 'Bar Chart':
+                    fig = px.bar(df, x=x_col, color=y_col, title=f"Bar Chart of {x_col} by {y_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Count Plot':
+                    # Créer un tableau croisé pour le countplot
+                    cross_tab = pd.crosstab(df[x_col], df[y_col])
+                    fig = px.imshow(cross_tab, text_auto=True, aspect="auto",
+                                    title=f"Count Plot of {x_col} vs {y_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Heatmap':
+                    # Normaliser le tableau croisé pour avoir des pourcentages
+                    cross_tab_norm = pd.crosstab(df[x_col], df[y_col], normalize='index')
+                    fig = px.imshow(cross_tab_norm, text_auto='.1%', aspect="auto",
+                                    color_continuous_scale='Blues',
+                                    title=f"Heatmap of {x_col} vs {y_col} (% par ligne)")
+                    st.plotly_chart(fig)
+
+            elif (x_is_object and not y_is_object) or (not x_is_object and y_is_object):
+                # Une variable catégorielle et une numérique
+                cat_col = x_col if x_is_object else y_col
+                num_col = y_col if x_is_object else x_col
+
+                graph_type = ch[2].selectbox(
+                    label='Type de graphique',
+                    options=['Box Plot', 'Violin Plot', 'Bar Chart', 'Swarm Plot'],
+                    key='cat_num'
+                )
+
+                if graph_type == 'Box Plot':
+                    fig = px.box(df, x=cat_col, y=num_col,
+                                 title=f"Box Plot of {num_col} by {cat_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Violin Plot':
+                    fig = px.violin(df, x=cat_col, y=num_col, box=True,
+                                    title=f"Violin Plot of {num_col} by {cat_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Bar Chart':
+                    # Calculer la moyenne par catégorie
+                    agg_df = df.groupby(cat_col)[num_col].mean().reset_index()
+                    fig = px.bar(agg_df, x=cat_col, y=num_col,
+                                 title=f"Average {num_col} by {cat_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Swarm Plot':
+                    # Pour un swarm plot, utiliser Plotly Strip Plot comme alternative
+                    fig = px.strip(df, x=cat_col, y=num_col,
+                                   title=f"Swarm Plot of {num_col} by {cat_col}")
+                    st.plotly_chart(fig)
+
+            else:
+                # Les deux sont numériques
+                graph_type = ch[2].selectbox(
+                    label='Type de graphique',
+                    options=['Scatter Plot', 'Line Plot', 'Hexbin', 'Density Contour', 'Bubble Chart'],
+                    key='num_num'
+                )
+
+                if graph_type == 'Scatter Plot':
+                    fig = px.scatter(df, x=x_col, y=y_col,
+                                     title=f"Scatter Plot of {y_col} vs {x_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Line Plot':
+                    # Trier par x pour avoir une ligne cohérente
+                    sorted_df = df.sort_values(by=x_col)
+                    fig = px.line(sorted_df, x=x_col, y=y_col,
+                                  title=f"Line Plot of {y_col} vs {x_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Hexbin':
+                    fig = px.density_heatmap(df, x=x_col, y=y_col, nbinsx=20, nbinsy=20,
+                                             title=f"Hexbin Plot of {y_col} vs {x_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Density Contour':
+                    fig = px.density_contour(df, x=x_col, y=y_col,
+                                             title=f"Density Contour of {y_col} vs {x_col}")
+                    st.plotly_chart(fig)
+                elif graph_type == 'Bubble Chart':
+                    # Utiliser une troisième variable numérique pour la taille des bulles si disponible
+                    num_cols = df.select_dtypes(include=['float', 'int']).columns
+                    if len(num_cols) > 2 and set([x_col, y_col]).issubset(set(num_cols)):
+                        size_col = [col for col in num_cols if col not in [x_col, y_col]][0]
+                        fig = px.scatter(df, x=x_col, y=y_col, size=size_col,
+                                         title=f"Bubble Chart of {y_col} vs {x_col} (size: {size_col})")
+                    else:
+                        # Si pas de 3ème variable numérique, utiliser une constante
+                        fig = px.scatter(df, x=x_col, y=y_col, size_max=15,
+                                         title=f"Bubble Chart of {y_col} vs {x_col}")
+                    st.plotly_chart(fig)
