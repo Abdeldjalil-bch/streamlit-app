@@ -28,7 +28,7 @@ if file:
         st.write("les valeurs uniques : ", "\n", data.nunique(), "\n")
 
 
-    vision(df)  # Just call the function, don't st.write() its result since it already contains st.write()
+    vision(df)
 
     cols = st.columns(4)
     box2 = cols[0].multiselect(label="drope columns", options=df.columns)
@@ -36,13 +36,10 @@ if file:
         df = df.drop(columns=box2)
         st.write("Columns after dropping:", df.columns)
 
-        # Partie des graphiques individuels modifiée
         st.subheader("Graphiques individuels")
-
-        # Sélectionner une colonne spécifique à visualiser
         selected_col = st.selectbox("Sélectionnez une colonne à visualiser:", options=df.columns)
 
-                if selected_col and not df.empty:
+        if selected_col and not df.empty:
             is_numeric = df[selected_col].dtype != 'object' and df[selected_col].dtype.name != 'category'
             unique_count = df[selected_col].nunique()
 
